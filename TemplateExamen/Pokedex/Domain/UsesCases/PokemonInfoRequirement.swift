@@ -7,20 +7,20 @@
 
 import Foundation
 
-protocol PokemonInfoRequirementProtocol {
-    func getPokemonInfo(numberPokemon:Int) async -> Perfil?
+protocol CovidCasesRequirementProtocol {
+    func getCovidCases(country:String, date:String) async throws-> [CovidData]
 }
 
-class PokemonInfoRequirement: PokemonInfoRequirementProtocol {
-    static let shared: PokemonInfoRequirement = PokemonInfoRequirement()
-    let dataRepository : PokemonRepository
+class CovidCasesRequirement: CovidCasesRequirementProtocol {
+    static let shared: CovidCasesRequirement = CovidCasesRequirement()
+    let dataRepository : CovidCasesRepository
 
-    init(dataRepository: PokemonRepository = PokemonRepository.shared) {
+    init(dataRepository: CovidCasesRepository = CovidCasesRepository.shared) {
         self.dataRepository = dataRepository
     }
     
-    func getPokemonInfo(numberPokemon: Int) async -> Perfil? {
-        return await dataRepository.getPokemonInfo(numberPokemon: numberPokemon)
+    func getCovidCases(country:String, date:String) async throws -> [CovidData]{
+        return try  await dataRepository.getCovidCases(country:country, date:date)
     }
 }
 

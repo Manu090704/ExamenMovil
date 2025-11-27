@@ -7,43 +7,30 @@
 import Foundation
 import Alamofire
 
-class NetworkAPIService {
-    static let shared = NetworkAPIService()
-    
-    func getPokedex(url: URL, limit: Int) async -> Pokedex?{
-        let parameters : Parameters = ["limit": limit]
-        
-        let taskRequest = AF.request(url, method: .get, parameters: parameters).validate()
-        let response = await taskRequest.serializingData().response
-        
-        switch response.result {
-        case .success(let data):
-            do {
-                return try JSONDecoder().decode(Pokedex.self, from: data)
-            } catch{
-                return nil
-            }
-        case let .failure(error):
-            debugPrint(error.localizedDescription)
-            return nil
+
+enum AppConfig {
+    static let apiKey: String = "wzlGa5trNSldhp8OAGgjKw==f8oV6rOvyLH5YNAz"
+    static let baseURL = "https://api.api-ninjas.com/v1/covid19"
+}
+
+struct CovidService {
+    static let shared = CovidService()
+
+    func getCountryData(country: String, date: String) async throws -> [CovidData] {
+        guard var url = URLComponents(string: AppConfig.baseURL) else {
+            throw URLError(.badURL)
         }
-    }
-    
-    func getPokemonInfo(url: URL) async -> Perfil?{
-        
-        let taskRequest = AF.request(url, method: .get).validate()
-        let response = await taskRequest.serializingData().response
-        
-        switch response.result {
-        case .success(let data):
-            do {
-                return try JSONDecoder().decode(Perfil.self, from: data)
-            } catch{
-                return nil
-            }
-        case let .failure(error):
-            debugPrint(error.localizedDescription)
-            return nil
-        }
+
+        url.queryItems = [
+            URLQueryItem(name: "country", value: country),
+            URLQueryItem(name: "date", value: date)
+        ]
+        var request = URLRequest(url: url.url!)
+        request.httpMethod = "GET"
+        request.addValue(AppConfig.apiKey, forHTTPHeaderField: "X-Api-Key")
+
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let decoded = try JSONDecoder().decode([CovidData].self, from: data)
+        return decoded
     }
 }

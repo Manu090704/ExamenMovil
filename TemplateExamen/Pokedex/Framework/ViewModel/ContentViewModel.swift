@@ -1,35 +1,52 @@
-//
-//  ContentViewModel.swift
-//  Pokedex
-//
-//  Created by Manuel Bajos Rivera on 30/10/25.
-//
 import Foundation
+import SwiftUI
 import Combine
 
-class ContentViewModel: ObservableObject {
-    @Published var pokemonList = [PokemonBase]()
-    
-    var pokemonListRequirement: PokemonListRequirementProtocol
-    var pokemonInfoRequirement: PokemonInfoRequirementProtocol
+@MainActor
+final class CovidViewModel: ObservableObject {
+    @Published var covid: CovidData?
+    @Published var selectedDate: String?
+    @Published var isLoading = false
+    @Published var errorMessage: String?
 
-    init(pokemonListRequirement: PokemonListRequirementProtocol = PokemonListRequirement.shared,
-            pokemonInfoRequirement: PokemonInfoRequirementProtocol = PokemonInfoRequirement.shared) {
-        self.pokemonListRequirement = pokemonListRequirement
-        self.pokemonInfoRequirement = pokemonInfoRequirement
+    private let repo = CovidCasesRepository.shared
+
+    /// Solo fechas donde **sí hay información**
+    var availableDates: [String] {
+        guard let data = covid else { return [] }
+
+        return data.cases
+            .filter { ($0.value.total ?? 0) > 0 || ($0.value.new ?? 0) > 0 } // 💥 solo días con datos reales
+            .map { $0.key }
+            .sorted()
     }
-    
-    @MainActor
-    func getPokemonList() async{
-        let result = await pokemonListRequirement.getPokemonList(limit: 1279)
-        
-        for i in 0...result!.results.count-1 {
-            let numberPokemon = Int(result!.results[i].url.split(separator: "/")[5])!
-            
-            let infoPokemon = await pokemonInfoRequirement.getPokemonInfo(numberPokemon: Int(String(numberPokemon))!)
-            let tempPokemon = PokemonBase(id: Int(String(numberPokemon))!, pokemon: result!.results[i], perfil: infoPokemon)
-            
-            self.pokemonList.append(tempPokemon)
+
+    /// Datos para gráfica
+    var chartData: [(date: String, total: Int, new: Int)] {
+        guard let data = covid else { return [] }
+
+        return data.cases
+            .filter { ($0.value.total ?? 0) > 0 || ($0.value.new ?? 0) > 0 } // 💥 importante
+            .sorted { $0.key < $1.key }
+            .compactMap {
+                (date: $0.key,
+                 total: $0.value.total ?? 0,
+                 new: $0.value.new ?? 0)
+            }
+    }
+
+    func fetch(country: String) async {
+        isLoading = true
+        errorMessage = nil
+
+        do {
+            var list = try await repo.getCovidCases(country: country, date: "")
+            covid = list.first
+            selectedDate = availableDates.first
+        } catch {
+            errorMessage = "No se pudieron obtener datos del país."
         }
+
+        isLoading = false
     }
 }
