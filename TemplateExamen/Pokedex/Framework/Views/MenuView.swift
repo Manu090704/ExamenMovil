@@ -12,11 +12,11 @@ struct MenuView: View {
         TabView {
             ContentView().tabItem {
                 Image(systemName: "cricket.ball")
-                Text("Pokedex")
+                Text("Un país")
             }
-            PerfilView().tabItem {
+            CovidCompareView().tabItem {
                 Image(systemName: "person")
-                Text("Perfil")
+                Text("Comparación")
             }
         }
     }

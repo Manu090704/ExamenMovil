@@ -12,16 +12,21 @@ class LocalService{
 
     init(){}
     
-    func getCurrentUser() -> String? {
-        return UserDefaults.standard.string(forKey: "currentUser")
+    // --- País ---
+    func saveLastCountry(_ country: String) {
+        UserDefaults.standard.set(country, forKey: "lastCountry")
     }
 
-    func setCurrentUser(email: String) {
-        UserDefaults.standard.set(email, forKey: "currentUser")
+    func getLastCountry() -> String? {
+        UserDefaults.standard.string(forKey: "lastCountry")
     }
 
-    func removeCurrentUser() {
-        UserDefaults.standard.removeObject(forKey: "currentUser")
+    // --- Fecha ---
+    func saveLastDate(_ date: String) {
+        UserDefaults.standard.set(date, forKey: "lastDate")
     }
-    
+
+    func getLastDate() -> String? {
+        UserDefaults.standard.string(forKey: "lastDate")
+    }
 }

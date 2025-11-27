@@ -20,7 +20,7 @@ struct CoordinatorView: View {
     var body: some View {
         FlowStack($routes, withNavigation: true) {
             // Set home screen destination flows
-            LoginView()
+            ContentView()
                 .flowDestination(for: Screen.self) { screen in
                     /// For each screen setup the corresponding view
                     switch screen {
